@@ -5,8 +5,6 @@
 #fish-headings div {
     font-size: 1em;
     color: darkred;
-    transition: font-size .1s;
-    transition-timing-function: ease-out;
 }
 
 #fish-headings div.enabled {

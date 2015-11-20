@@ -3,5 +3,6 @@
 }
 
 #fish-headings div {
-    transition: top 1s, left 1s;
+    transition: top .1s, left .1s, font-size .1s;
+    transition-timing-function: ease-out;
 }

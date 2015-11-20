@@ -1,6 +1,11 @@
 function log
     console.log.apply console, arguments
 
+function warn
+    args = [.. for &]
+        ..unshift 'Warning:'
+    console.warn.apply console, args
+
 function ierror
     args = [].slice.call arguments .join ' '
     err = "Internal error: " + args
@@ -91,7 +96,7 @@ function round decimals, number
 
 
 module.exports = {
-    log, ierror,
+    log, ierror, warn,
     is-str, is-string,
     is-bool, is-boolean,
     is-obj, is-object,
@@ -100,5 +105,5 @@ module.exports = {
     is-a-num, is-a-number,
     is-integer, is-int,
     is-positive-int, is-non-negative-int,
-    round
+    round,
 }

@@ -2,5 +2,6 @@ main = require('./main')
 
 module.exports = {
     init: main.init
-    collapse: main.collapse
+    collapse: main.collapse,
+    expand: main.expand
 }

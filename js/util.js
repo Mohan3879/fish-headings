@@ -4,6 +4,19 @@
   function log(){
     return console.log.apply(console, arguments);
   }
+  function warn(){
+    var x$, args;
+    x$ = args = (function(args$){
+      var i$, x$, len$, results$ = [];
+      for (i$ = 0, len$ = args$.length; i$ < len$; ++i$) {
+        x$ = args$[i$];
+        results$.push(x$);
+      }
+      return results$;
+    }(arguments));
+    x$.unshift('Warning:');
+    return console.warn.apply(console, args);
+  }
   function ierror(){
     var args, err, e, s;
     args = [].slice.call(arguments).join(' ');
@@ -96,6 +109,7 @@
   module.exports = {
     log: log,
     ierror: ierror,
+    warn: warn,
     isStr: isStr,
     isString: isString,
     isBool: isBool,
