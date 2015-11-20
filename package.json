@@ -1,0 +1,12 @@
+{
+  "name": "fish-headings",
+  "version": "0.1.0",
+  "description": "Collapsible section headings for website navigation",
+  "repository": {},
+  "dependencies": {
+    "jquery-browser": "^1.10.2-1"
+  },
+  "devDependencies": {
+    "livescript": "^1.4.0"
+  }
+}
