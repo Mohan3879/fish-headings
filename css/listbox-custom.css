@@ -1,0 +1,20 @@
+#listbox {
+    font-size: 25px;
+}
+
+#listbox div {
+    font-size: 1em;
+    transition: font-size .1s;
+    transition-timing-function: ease-out;
+}
+
+#listbox div.enabled {
+    color: black;
+    font-size: 1em;
+}
+
+#listbox div.disabled {
+    color: black;
+    opacity: .4;
+    font-size: .5em;
+}

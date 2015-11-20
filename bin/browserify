@@ -1,0 +1,23 @@
+#!/bin/bash
+
+. "$(dirname "$0")"/functions
+
+script_dir=$(dirname "$0")
+js_dir="$script_dir/../js"
+
+USAGE="Usage: $0"
+
+arg="$1"
+
+if [ "$arg" = -h ]; then
+    warn $USAGE
+    exit 0
+else
+    /bin/true
+fi
+
+cmd "$script_dir"/node_modules/browserify/bin/cmd.js \
+    "$js_dir"/main.js \
+    -o "$js_dir/index.js"
+
+exit 0
