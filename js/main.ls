@@ -20,6 +20,8 @@ our =
 
     $main: void
 
+    opts: {}
+
     # expanded
     tops: []
     lefts: []
@@ -40,6 +42,7 @@ our =
 function init $_container, vals, opts = {}
     our.$container = $_container
     init-main vals, opts
+    calculate()
     inject()
     absolutise()
 
@@ -48,6 +51,7 @@ function init $_container, vals, opts = {}
     $ window .on 'resize' ->
         log 'resizing'
         our.$container.empty()
+        calculate()
         inject()
 
         if our.selected != -1
@@ -98,10 +102,11 @@ function expand
 
 # -- private
 
-function init-main vals, opts = {}
+function init-main vals, _opts = {}
 
     our.num-items = vals.length
-    our.flush-left = opts.flush-left ? false
+    our.opts = _opts
+    our.flush-left = _opts.flush-left ? false
 
     $main = $ '<div>'
         ..attr 'id' project-name
@@ -132,16 +137,18 @@ function init-main vals, opts = {}
         $item.append $span-text
         our.items.push $item
 
-    our.padding-top = make-absolute opts.padding-top ? 0, 'vertical'
-    our.padding-bottom = make-absolute opts.padding-bottom ? 0, 'vertical'
+    our.$main = $main
+
+function calculate
+    our.padding-top = make-absolute our.opts.padding-top ? 0, 'vertical'
+    our.padding-bottom = make-absolute our.opts.padding-bottom ? 0, 'vertical'
 
     our.$container
         .css 'padding-top' our.padding-top
         .css 'padding-bottom' our.padding-bottom
 
-    our.$main = $main
+    our.collapsed-height-inner = make-absolute our.opts.collapsed-height-inner, 'vertical'
 
-    our.collapsed-height-inner = make-absolute opts.collapsed-height-inner, 'vertical'
 
 function inject
     our.$container.append our.$main

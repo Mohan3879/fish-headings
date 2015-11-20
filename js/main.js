@@ -19,6 +19,7 @@
   our = {
     items: [],
     $main: void 8,
+    opts: {},
     tops: [],
     lefts: [],
     numItems: -1,
@@ -37,12 +38,14 @@
     opts == null && (opts = {});
     our.$container = $_container;
     initMain(vals, opts);
+    calculate();
     inject();
     absolutise();
     log('winning');
     return $(window).on('resize', function(){
       log('resizing');
       our.$container.empty();
+      calculate();
       inject();
       if (our.selected !== -1) {
         return collapse(our.selected);
@@ -94,11 +97,12 @@
     our.$container.removeClass(config['class'].containerCollapsed);
     return restore();
   }
-  function initMain(vals, opts){
+  function initMain(vals, _opts){
     var ref$, x$, $main;
-    opts == null && (opts = {});
+    _opts == null && (_opts = {});
     our.numItems = vals.length;
-    our.flushLeft = (ref$ = opts.flushLeft) != null ? ref$ : false;
+    our.opts = _opts;
+    our.flushLeft = (ref$ = _opts.flushLeft) != null ? ref$ : false;
     x$ = $main = $('<div>');
     x$.attr('id', projectName);
     vals.forEach(function(v, i){
@@ -131,11 +135,14 @@
       $item.append($spanText);
       return our.items.push($item);
     });
-    our.paddingTop = makeAbsolute((ref$ = opts.paddingTop) != null ? ref$ : 0, 'vertical');
-    our.paddingBottom = makeAbsolute((ref$ = opts.paddingBottom) != null ? ref$ : 0, 'vertical');
+    return our.$main = $main;
+  }
+  function calculate(){
+    var ref$;
+    our.paddingTop = makeAbsolute((ref$ = our.opts.paddingTop) != null ? ref$ : 0, 'vertical');
+    our.paddingBottom = makeAbsolute((ref$ = our.opts.paddingBottom) != null ? ref$ : 0, 'vertical');
     our.$container.css('padding-top', our.paddingTop).css('padding-bottom', our.paddingBottom);
-    our.$main = $main;
-    return our.collapsedHeightInner = makeAbsolute(opts.collapsedHeightInner, 'vertical');
+    return our.collapsedHeightInner = makeAbsolute(our.opts.collapsedHeightInner, 'vertical');
   }
   function inject(){
     our.$container.append(our.$main);
