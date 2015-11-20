@@ -4,6 +4,7 @@
 
 #fish-headings div {
     font-size: 1em;
+    color: darkred;
     transition: font-size .1s;
     transition-timing-function: ease-out;
 }
@@ -17,4 +18,10 @@
     color: black;
     opacity: .4;
     font-size: .5em;
+    left: 70%;
+}
+
+/* Avoid jump */
+#fish-headings div span:nth-child(1) {
+    min-width: 40px;
 }

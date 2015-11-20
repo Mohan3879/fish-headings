@@ -4,6 +4,8 @@ project-name = 'fish-headings'
 
 { log, ierror, is-num, is-int, is-a-num, round } = util = require './util'
 
+#{ each } = prelude-ls = require 'prelude-ls'
+
 module.exports =
     init: init
     collapse: collapse
@@ -14,16 +16,18 @@ num-items = -1
 $container = void
 
 container-width = -1
-container-height = -1
+collapsed-height = -1
 
 span-widths = []
 longest-width = -1
 span-height-large = void
 
-function init $_container, vals
+function init $_container, vals, opts = {}
     $container := $_container
 
     container-width := $container.width()
+
+    #list-icon-class = opts.list-icon-class ? []
 
     num-items := vals.length
 
@@ -31,19 +35,34 @@ function init $_container, vals
         ..attr 'id' project-name
 
     vals.for-each (v, i) ->
-        inner = v
+        if typeof! v is 'Object'
+            { text, href, list-icon-class } = v
+            list-icon-class ?= []
+        else
+            text = v
+            list-icon-class = []
         $item = $ '<div>'
-            #..html inner
             ..attr 'id' i
-        $span = $ '<span>'
-            ..html inner
+        $span-icon = $ '<span>'
+        list-icon-class.for-each ->
+            $span-icon.add-class it
+        if href
+            $span-contents = $ '<a>'
+                ..attr 'href' href
+                ..html text
+            $span-text = $ '<span>'
+                ..append $span-contents
+        else
+            $span-text = $ '<span>'
+                ..html text
         $main.append $item
-        $item.append $span
+        $item.append $span-icon
+        $item.append $span-text
         items.push $item
 
     $container.append $main
 
-    container-height := $container.height()
+    collapsed-height := if opts.collapsed-height? then that else $container.height()
 
 function collapse n
     tops = []
@@ -53,7 +72,8 @@ function collapse n
         tops.push offset.top
         lefts.push offset.left
 
-        $span = $v.find 'span'
+        span = $v.find 'span' .1
+        $span = $ span
         width = $span.width()
         longest-width := Math.max width, longest-width
         span-height-large := $span.height() unless span-height-large?
@@ -84,20 +104,25 @@ function select n
         else
             $v.add-class 'disabled'
 
-    #container-height = $container.height()
-    log 'container-height' container-height
     log 'span-height-large' span-height-large
 
     j = -1
     items.for-each ($v, i) ->
         if i == n
             $v.css 'left' 0
-            top = (container-height / 2) - (span-height-large / 2)
+            top = (collapsed-height / 2) - (span-height-large / 2)
             $v.css 'top' top
         else
             j++
-            $v.css 'left' longest-width + 15 # XX
+            #$v.css 'left' longest-width + 15 # XX
+            $v
+                .css 'left' ''
+                #.css 'right' 10
             span-height-small = 10 # XX
-            top = (container-height - span-height-small) / (num-items - 2) * j
+            top = (collapsed-height - span-height-small) / (num-items - 2) * j
             $v.css 'top' top
 
+    $container.height collapsed-height
+
+function expand
+    log 'no op expand'
