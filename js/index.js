@@ -3,6 +3,7 @@
   var main;
   main = require('./main');
   module.exports = {
-    init: main.init
+    init: main.init,
+    collapse: main.collapse
   };
 }).call(this);

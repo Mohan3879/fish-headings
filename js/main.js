@@ -5,7 +5,8 @@
   projectName = 'fish-headings';
   ref$ = util = require('./util'), log = ref$.log, ierror = ref$.ierror, isNum = ref$.isNum, isInt = ref$.isInt, isANum = ref$.isANum, round = ref$.round;
   module.exports = {
-    init: init
+    init: init,
+    collapse: collapse
   };
   $main = void 8;
   items = [];
@@ -95,23 +96,4 @@
       }
     });
   }
-  function collapse2(n){
-    var widthLast, leftFirst, leftLast, availableWidth, spacing;
-    widthLast = spanWidths[numItems - 1];
-    leftFirst = 0;
-    log('width-last', widthLast);
-    leftLast = containerWidth - widthLast;
-    log('container-width', containerWidth);
-    log('left-last', leftLast);
-    availableWidth = leftLast - leftFirst;
-    spacing = availableWidth / numItems;
-    return items.forEach(function($v, i){
-      var left;
-      return;
-      left = leftFirst + spacing * i;
-      return $v.css('top', 0).css('left', left);
-    });
-  }
-  window.collapse = collapse;
-  window.collapse2 = collapse2;
 }).call(this);
