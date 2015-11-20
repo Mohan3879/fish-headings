@@ -1,4 +1,4 @@
-$ = jquery = require 'lib/jquery'
+$ = jquery = require './lib/jquery'
 
 project-name = 'fish-headings'
 
