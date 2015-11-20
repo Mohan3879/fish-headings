@@ -1,7 +1,7 @@
-#listbox {
+#fish-headings {
     position: relative;
 }
 
-#listbox div {
+#fish-headings div {
     transition: top 1s, left 1s;
 }

@@ -1,6 +1,6 @@
 $ = jquery = require 'jquery'
 
-project-name = 'listbox'
+project-name = 'fish-headings'
 
 { log, ierror, is-num, is-int, is-a-num, round } = util = require './util'
 
@@ -20,13 +20,9 @@ longest-width = -1
 span-height-large = void
 
 function init $_container, vals
-    log 'listbox init'
-
     $container := $_container
 
     container-width := $container.width()
-
-    log 'container-width' container-width
 
     num-items := vals.length
 

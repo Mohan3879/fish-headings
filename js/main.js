@@ -2,7 +2,7 @@
 (function(){
   var $, jquery, projectName, util, ref$, log, ierror, isNum, isInt, isANum, round, $main, items, numItems, $container, containerWidth, containerHeight, spanWidths, longestWidth, spanHeightLarge;
   $ = jquery = require('jquery');
-  projectName = 'listbox';
+  projectName = 'fish-headings';
   ref$ = util = require('./util'), log = ref$.log, ierror = ref$.ierror, isNum = ref$.isNum, isInt = ref$.isInt, isANum = ref$.isANum, round = ref$.round;
   module.exports = {
     init: init
@@ -18,10 +18,8 @@
   spanHeightLarge = void 8;
   function init($_container, vals){
     var x$, $main;
-    log('listbox init');
     $container = $_container;
     containerWidth = $container.width();
-    log('container-width', containerWidth);
     numItems = vals.length;
     x$ = $main = $('<div>');
     x$.attr('id', projectName);

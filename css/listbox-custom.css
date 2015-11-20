@@ -1,19 +1,19 @@
-#listbox {
+#fish-headings {
     font-size: 25px;
 }
 
-#listbox div {
+#fish-headings div {
     font-size: 1em;
     transition: font-size .1s;
     transition-timing-function: ease-out;
 }
 
-#listbox div.enabled {
+#fish-headings div.enabled {
     color: black;
     font-size: 1em;
 }
 
-#listbox div.disabled {
+#fish-headings div.disabled {
     color: black;
     opacity: .4;
     font-size: .5em;
