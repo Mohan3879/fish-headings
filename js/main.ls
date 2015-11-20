@@ -6,6 +6,7 @@ project-name = 'fish-headings'
 
 module.exports =
     init: init
+    collapse: collapse
 
 $main = void
 items = []
@@ -68,9 +69,7 @@ function collapse n
             .css 'left' left
 
     set-timeout do
-        ->
-            select n
-            #collapse2 n
+        -> select n
         0
 
 function select n
@@ -102,24 +101,3 @@ function select n
             top = (container-height - span-height-small) / (num-items - 2) * j
             $v.css 'top' top
 
-
-function collapse2 n
-    width-last = span-widths[num-items - 1]
-    # padding XX
-    left-first = 0
-    log 'width-last' width-last
-    left-last = container-width - width-last
-    log 'container-width' container-width
-    log 'left-last' left-last
-    available-width = left-last - left-first
-    spacing = available-width / num-items
-
-    items.for-each ($v, i) ->
-        return
-        left = left-first + spacing * i
-        $v
-            .css 'top' 0
-            .css 'left' left
-
-window.collapse = collapse
-window.collapse2 = collapse2
