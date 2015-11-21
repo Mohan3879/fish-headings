@@ -14,6 +14,7 @@ config =
         heading-enabled: 'enabled'
         heading-disabled: 'disabled'
         container-collapsed: 'collapsed'
+    collision-gutter: 100
 
 our =
     items: []
@@ -27,7 +28,7 @@ our =
     lefts: []
 
     num-items: -1
-    selected: -1
+    selected: void
     $container: void
     container-width: -1
     expanded-height: -1
@@ -44,21 +45,34 @@ function init $_container, vals, opts = {}
     init-main vals, opts
     calculate()
     inject()
-    absolutise()
 
-    # take out XX
-    log 'winning'
     $ window .on 'resize' ->
         log 'resizing'
+        #our.disable-transitionend = true
+        set-timeout do
+            -> #our.disable-transitionend = false
+            1000
         our.$container.empty()
         calculate()
         inject()
 
-        if our.selected != -1
-            collapse our.selected
+        if our.selected?
+            # check-collisions will happen after transition event
+            collapse our.selected, true
 
-function collapse n
+function collapse n, force
+    if our.selected == n and not force
+        check-collisions()
+        return
 
+    absolutise()
+
+    set-timeout do
+        -> collapse-do n
+        0
+
+# -- private
+function collapse-do n
     our.selected = n
 
     our.$container.add-class config.class.container-collapsed
@@ -77,7 +91,6 @@ function collapse n
         if i == n
             $v.css 'left' 0
             top = (divide our.collapsed-height-inner, 2) - (our.span-height-large / 2)
-            log 'topping enabled' top
             $v.css 'top' top
         else
             j++
@@ -90,15 +103,20 @@ function collapse n
                 height = subtract our.collapsed-height-inner, span-height-small
                 delta = divide height, (our.num-items - 2)
                 multiply delta, j
-            log 'topping disabled' top
             $v.css 'top' top
 
-    log '1min-height' our.collapsed-height
-    our.$container.css 'min-height' our.collapsed-height
+        our.$container.css 'min-height' our.collapsed-height
+    # it's possible that no css changed during this call, so
+    # transitionend won't fire and check-collisions won't get called.
+    check-collisions()
 
 function expand
+    return unless our.selected?
     our.$container.remove-class config.class.container-collapsed
     restore()
+    our.selected = void
+
+    #check-collisions()
 
 # -- private
 
@@ -139,6 +157,11 @@ function init-main vals, _opts = {}
 
     our.$main = $main
 
+    our.items.0.on 'transitionend' ->
+        log 'disabled trans' our.disable-transitionend
+        return if our.disable-transitionend
+        check-collisions()
+
 function calculate
     our.padding-top = make-absolute our.opts.padding-top ? 0, 'vertical'
     our.padding-bottom = make-absolute our.opts.padding-bottom ? 0, 'vertical'
@@ -147,20 +170,22 @@ function calculate
         .css 'padding-top' our.padding-top
         .css 'padding-bottom' our.padding-bottom
 
-    our.collapsed-height-inner = make-absolute our.opts.collapsed-height-inner, 'vertical'
-
+    our.collapsed-height-inner = if our.opts.collapsed-height-inner then
+        make-absolute that, 'vertical'
+    else
+        void
 
 function inject
     our.$container.append our.$main
 
     our.expanded-height = our.$container.outer-height()
-    log 'expanded-height' our.expanded-height
-    #our.collapsed-height-inner = opts.collapsed-height-inner ? our.expanded-height
 
-    # move to init
-    our.collapsed-height = add our.collapsed-height-inner, our.padding-top, our.padding-bottom
+    collapsed-inner = our.collapsed-height-inner ? our.expanded-height
+    our.collapsed-height = add collapsed-inner, our.padding-top, our.padding-bottom
 
 function absolutise
+    our.items.for-each ($v, i) ->
+        $v.css 'position' 'static'
     tops = []
     lefts = []
     our.items.for-each ($v, i) ->
@@ -181,7 +206,6 @@ function absolutise
             .css 'top' top
             .css 'left' left
 
-    log '2min-height' our.expanded-height
     our.$container.css 'min-height' our.expanded-height
     #our.$container.css 'height' our.expanded-height
 
@@ -190,15 +214,11 @@ function absolutise
 
 function restore
     our.items.for-each ($v, i) ->
-        top = our.tops[i]
-        left = our.lefts[i]
         $v
-            .css 'top' top
-            .css 'left' left
+            .css 'position' 'static'
             .remove-class config.class.heading-disabled
             .add-class config.class.heading-enabled
 
-    log '3min-height' our.expanded-height
     our.$container.css 'min-height' our.expanded-height
 
 function op the-op, values
@@ -219,9 +239,7 @@ function op the-op, values
         k++
         i += ''
         j = i
-        log 'before' i
         i .= replace // % $ // ''
-        log 'after' i
         # percent mode
         if i != j
             #if percent-mode == false return warn "add: can't mix percent and pixels"
@@ -251,12 +269,29 @@ function multiply
 # direction is 'vertical' or 'horizontal'
 function make-absolute val, direction
     m = val == // ^ (.+) % $ //
-    log 'make-absolute:' val unless m
     return val unless m
 
     $the-reference = $ window
     the-reference-val = if direction == 'horizontal' then $the-reference.width() else $the-reference.height()
-    log 'make-absolute:' m.1 / 100 * the-reference-val
     m.1 * the-reference-val / 100
+
+function check-collisions
+    left-stuff-right-edge = -1
+    right-stuff-left-edge = -1
+    our.items.for-each ($v, i) ->
+        $v.show()
+    our.items.for-each ($v, i) ->
+        if $v.has-class config.class.heading-enabled
+            left-stuff-right-edge := $v.offset().left + $v.width()
+        else if $v.has-class config.class.heading-disabled
+            right-stuff-left-edge := $v.offset().left
+        return if right-stuff-left-edge? and left-stuff-right-edge?
+
+    if right-stuff-left-edge <= left-stuff-right-edge + config.collision-gutter
+        the-class = '.' + config.class.heading-disabled
+        $find = our.$container.find the-class
+            .hide()
+    # avoid strange javascript syntax error
+    1
 
 

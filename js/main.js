@@ -14,7 +14,8 @@
       headingEnabled: 'enabled',
       headingDisabled: 'disabled',
       containerCollapsed: 'collapsed'
-    }
+    },
+    collisionGutter: 100
   };
   our = {
     items: [],
@@ -23,7 +24,7 @@
     tops: [],
     lefts: [],
     numItems: -1,
-    selected: -1,
+    selected: void 8,
     $container: void 8,
     containerWidth: -1,
     expandedHeight: -1,
@@ -40,19 +41,28 @@
     initMain(vals, opts);
     calculate();
     inject();
-    absolutise();
-    log('winning');
     return $(window).on('resize', function(){
       log('resizing');
+      setTimeout(function(){}, 1000);
       our.$container.empty();
       calculate();
       inject();
-      if (our.selected !== -1) {
-        return collapse(our.selected);
+      if (our.selected != null) {
+        return collapse(our.selected, true);
       }
     });
   }
-  function collapse(n){
+  function collapse(n, force){
+    if (our.selected === n && !force) {
+      checkCollisions();
+      return;
+    }
+    absolutise();
+    return setTimeout(function(){
+      return collapseDo(n);
+    }, 0);
+  }
+  function collapseDo(n){
     var j;
     our.selected = n;
     our.$container.addClass(config['class'].containerCollapsed);
@@ -70,8 +80,7 @@
       if (i === n) {
         $v.css('left', 0);
         top = divide(our.collapsedHeightInner, 2) - our.spanHeightLarge / 2;
-        log('topping enabled', top);
-        return $v.css('top', top);
+        $v.css('top', top);
       } else {
         j++;
         if (our.flushLeft) {
@@ -86,16 +95,19 @@
           delta = divide(height, our.numItems - 2);
           return multiply(delta, j);
         }();
-        log('topping disabled', top);
-        return $v.css('top', top);
+        $v.css('top', top);
       }
+      return our.$container.css('min-height', our.collapsedHeight);
     });
-    log('1min-height', our.collapsedHeight);
-    return our.$container.css('min-height', our.collapsedHeight);
+    return checkCollisions();
   }
   function expand(){
+    if (our.selected == null) {
+      return;
+    }
     our.$container.removeClass(config['class'].containerCollapsed);
-    return restore();
+    restore();
+    return our.selected = void 8;
   }
   function initMain(vals, _opts){
     var ref$, x$, $main;
@@ -135,23 +147,36 @@
       $item.append($spanText);
       return our.items.push($item);
     });
-    return our.$main = $main;
+    our.$main = $main;
+    return our.items[0].on('transitionend', function(){
+      log('disabled trans', our.disableTransitionend);
+      if (our.disableTransitionend) {
+        return;
+      }
+      return checkCollisions();
+    });
   }
   function calculate(){
-    var ref$;
+    var ref$, that;
     our.paddingTop = makeAbsolute((ref$ = our.opts.paddingTop) != null ? ref$ : 0, 'vertical');
     our.paddingBottom = makeAbsolute((ref$ = our.opts.paddingBottom) != null ? ref$ : 0, 'vertical');
     our.$container.css('padding-top', our.paddingTop).css('padding-bottom', our.paddingBottom);
-    return our.collapsedHeightInner = makeAbsolute(our.opts.collapsedHeightInner, 'vertical');
+    return our.collapsedHeightInner = (that = our.opts.collapsedHeightInner) ? makeAbsolute(that, 'vertical') : void 8;
   }
   function inject(){
+    var collapsedInner, ref$;
     our.$container.append(our.$main);
     our.expandedHeight = our.$container.outerHeight();
-    log('expanded-height', our.expandedHeight);
-    return our.collapsedHeight = add(our.collapsedHeightInner, our.paddingTop, our.paddingBottom);
+    collapsedInner = (ref$ = our.collapsedHeightInner) != null
+      ? ref$
+      : our.expandedHeight;
+    return our.collapsedHeight = add(collapsedInner, our.paddingTop, our.paddingBottom);
   }
   function absolutise(){
     var tops, lefts;
+    our.items.forEach(function($v, i){
+      return $v.css('position', 'static');
+    });
     tops = [];
     lefts = [];
     our.items.forEach(function($v, i){
@@ -173,19 +198,14 @@
       left = lefts[i];
       return $v.css('position', 'absolute').css('top', top).css('left', left);
     });
-    log('2min-height', our.expandedHeight);
     our.$container.css('min-height', our.expandedHeight);
     our.tops = tops;
     return our.lefts = lefts;
   }
   function restore(){
     our.items.forEach(function($v, i){
-      var top, left;
-      top = our.tops[i];
-      left = our.lefts[i];
-      return $v.css('top', top).css('left', left).removeClass(config['class'].headingDisabled).addClass(config['class'].headingEnabled);
+      return $v.css('position', 'static').removeClass(config['class'].headingDisabled).addClass(config['class'].headingEnabled);
     });
-    log('3min-height', our.expandedHeight);
     return our.$container.css('min-height', our.expandedHeight);
   }
   function op(theOp, values){
@@ -213,9 +233,7 @@
       k++;
       i += '';
       j = i;
-      log('before', i);
       i = i.replace(/%$/, '');
-      log('after', i);
       if (i !== j) {
         percentMode = true;
       }
@@ -274,16 +292,35 @@
     var m, $theReference, theReferenceVal;
     m = /^(.+)%$/.exec(val);
     if (!m) {
-      log('make-absolute:', val);
-    }
-    if (!m) {
       return val;
     }
     $theReference = $(window);
     theReferenceVal = direction === 'horizontal'
       ? $theReference.width()
       : $theReference.height();
-    log('make-absolute:', m[1] / 100 * theReferenceVal);
     return m[1] * theReferenceVal / 100;
+  }
+  function checkCollisions(){
+    var leftStuffRightEdge, rightStuffLeftEdge, theClass, $find;
+    leftStuffRightEdge = -1;
+    rightStuffLeftEdge = -1;
+    our.items.forEach(function($v, i){
+      return $v.show();
+    });
+    our.items.forEach(function($v, i){
+      if ($v.hasClass(config['class'].headingEnabled)) {
+        leftStuffRightEdge = $v.offset().left + $v.width();
+      } else if ($v.hasClass(config['class'].headingDisabled)) {
+        rightStuffLeftEdge = $v.offset().left;
+      }
+      if (rightStuffLeftEdge != null && leftStuffRightEdge != null) {
+        return;
+      }
+    });
+    if (rightStuffLeftEdge <= leftStuffRightEdge + config.collisionGutter) {
+      theClass = '.' + config['class'].headingDisabled;
+      $find = our.$container.find(theClass).hide();
+    }
+    return 1;
   }
 }).call(this);
