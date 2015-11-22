@@ -45,7 +45,6 @@
     calculate();
     inject();
     return $(window).on('resize', function(){
-      log('resizing');
       our.$container.empty();
       calculate();
       inject();
@@ -166,7 +165,6 @@
     });
     our.$main = $main;
     return our.items[0].on('transitionend', function(){
-      log('disabled trans', our.disableTransitionend);
       if (our.disableTransitionend) {
         return;
       }
@@ -188,8 +186,7 @@
       ? ref$
       : our.expandedHeight;
     our.collapsedHeight = add(collapsedInner, our.paddingTop, our.paddingBottom);
-    our.$main.trigger('/collapsed-height');
-    return log('here, collapsed-height', our.collapsedHeight);
+    return our.$main.trigger('/collapsed-height');
   }
   function absolutise(){
     var tops, lefts;

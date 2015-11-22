@@ -51,7 +51,6 @@ function init $_container, vals, opts = {}
     inject()
 
     $ window .on 'resize' ->
-        log 'resizing'
         our.$container.empty()
         calculate()
         inject()
@@ -171,7 +170,6 @@ function init-main vals, _opts = {}
     our.$main = $main
 
     our.items.0.on 'transitionend' ->
-        log 'disabled trans' our.disable-transitionend
         return if our.disable-transitionend
         check-collisions()
 
@@ -197,7 +195,6 @@ function inject
     our.collapsed-height = add collapsed-inner, our.padding-top, our.padding-bottom
 
     our.$main.trigger '/collapsed-height'
-    log 'here, collapsed-height' our.collapsed-height
 
 function absolutise
     our.items.for-each ($v, i) ->
