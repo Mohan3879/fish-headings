@@ -5,6 +5,9 @@
   module.exports = {
     init: main.init,
     collapse: main.collapse,
-    expand: main.expand
+    expand: main.expand,
+    collapsedHeight: main.collapsedHeight,
+    selected: main.selected,
+    addListener: main.addListener
   };
 }).call(this);

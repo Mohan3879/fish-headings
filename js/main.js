@@ -7,7 +7,10 @@
   module.exports = {
     init: init,
     collapse: collapse,
-    expand: expand
+    expand: expand,
+    collapsedHeight: collapsedHeight,
+    selected: selected,
+    addListener: addListener
   };
   config = {
     'class': {
@@ -43,7 +46,6 @@
     inject();
     return $(window).on('resize', function(){
       log('resizing');
-      setTimeout(function(){}, 1000);
       our.$container.empty();
       calculate();
       inject();
@@ -109,6 +111,21 @@
     restore();
     return our.selected = void 8;
   }
+  function collapsedHeight(){
+    return our.collapsedHeight;
+  }
+  function selected(){
+    return our.selected;
+  }
+  function addListener(event, cb){
+    if (event === '/collapsed-height') {
+      return our.$main.on('/collapsed-height', function(){
+        return cb(our.collapsedHeight);
+      });
+    } else {
+      return warn("Invalid event", brightRed(event));
+    }
+  }
   function initMain(vals, _opts){
     var ref$, x$, $main;
     _opts == null && (_opts = {});
@@ -170,7 +187,9 @@
     collapsedInner = (ref$ = our.collapsedHeightInner) != null
       ? ref$
       : our.expandedHeight;
-    return our.collapsedHeight = add(collapsedInner, our.paddingTop, our.paddingBottom);
+    our.collapsedHeight = add(collapsedInner, our.paddingTop, our.paddingBottom);
+    our.$main.trigger('/collapsed-height');
+    return log('here, collapsed-height', our.collapsedHeight);
   }
   function absolutise(){
     var tops, lefts;

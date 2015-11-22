@@ -4,10 +4,14 @@ project-name = 'fish-headings'
 
 { log, warn } = util = require './util'
 
-module.exports =
-    init: init
-    collapse: collapse
-    expand: expand
+module.exports = {
+    init,
+    collapse,
+    expand,
+    collapsed-height,
+    selected,
+    add-listener,
+}
 
 config =
     class:
@@ -48,10 +52,6 @@ function init $_container, vals, opts = {}
 
     $ window .on 'resize' ->
         log 'resizing'
-        #our.disable-transitionend = true
-        set-timeout do
-            -> #our.disable-transitionend = false
-            1000
         our.$container.empty()
         calculate()
         inject()
@@ -118,6 +118,19 @@ function expand
 
     #check-collisions()
 
+function collapsed-height
+    our.collapsed-height
+
+function selected
+    our.selected
+
+function add-listener event, cb
+    if event is '/collapsed-height' then
+        our.$main.on '/collapsed-height' ->
+            cb our.collapsed-height
+    else
+        return warn "Invalid event" bright-red event
+
 # -- private
 
 function init-main vals, _opts = {}
@@ -182,6 +195,9 @@ function inject
 
     collapsed-inner = our.collapsed-height-inner ? our.expanded-height
     our.collapsed-height = add collapsed-inner, our.padding-top, our.padding-bottom
+
+    our.$main.trigger '/collapsed-height'
+    log 'here, collapsed-height' our.collapsed-height
 
 function absolutise
     our.items.for-each ($v, i) ->
