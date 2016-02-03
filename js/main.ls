@@ -76,6 +76,8 @@ function collapse-do n
 
     our.$container.add-class config.class.container-collapsed
 
+    # --- remove all classes, add enabled to the enabled and disabled to the
+    # rest.
     our.items.for-each ($v, i) ->
         $v
             .remove-class config.class.heading-disabled
@@ -85,14 +87,15 @@ function collapse-do n
         else
             $v.add-class config.class.heading-disabled
 
-    j = -1
+    cnt-disabled = -1
     our.items.for-each ($v, i) ->
+        log 'looping' i
         if i == n
             $v.css 'left' 0
             top = (divide our.collapsed-height-inner, 2) - (our.span-height-large / 2)
             $v.css 'top' top
         else
-            j++
+            cnt-disabled := cnt-disabled + 1
             if our.flush-left
                 $v.css 'left' our.longest-width + 15 # XX
             else
@@ -101,12 +104,16 @@ function collapse-do n
             top = do ->
                 height = subtract our.collapsed-height-inner, span-height-small
                 delta = divide height, (our.num-items - 2)
-                multiply delta, j
+                multiply delta, cnt-disabled
             $v.css 'top' top
 
         our.$container.css 'min-height' our.collapsed-height
-    # it's possible that no css changed during this call, so
+
+    # --- it's possible that no css changed during this call, so
     # transitionend won't fire and check-collisions won't get called.
+    #
+    # so call it manually.
+
     check-collisions()
 
 function expand
@@ -186,6 +193,11 @@ function calculate
     else
         void
 
+# --- inject the contents and calculate 'collapsed-height'; should happen
+# after each window resize as well.
+#
+# triggers /collapsed-height.
+
 function inject
     our.$container.append our.$main
 
@@ -195,6 +207,12 @@ function inject
     our.collapsed-height = add collapsed-inner, our.padding-top, our.padding-bottom
 
     our.$main.trigger '/collapsed-height'
+
+# --- put everything in its canonical position (left) so we can calculate
+# things.
+#
+# this can cause a flicker where the whole div gets too high for a moment, so
+# set a max-height.
 
 function absolutise
     our.items.for-each ($v, i) ->
@@ -219,8 +237,8 @@ function absolutise
             .css 'top' top
             .css 'left' left
 
-    our.$container.css 'min-height' our.expanded-height
-    #our.$container.css 'height' our.expanded-height
+    our.$container.css 'min-height' our.collapsed-height
+    our.$container.css 'max-height' our.collapsed-height
 
     our.tops = tops
     our.lefts = lefts
