@@ -67,7 +67,7 @@ function init $_container, vals, opts = {}
 
 function collapse n, force
     if our.selected == n and not force
-        check-collisions()
+        #check-collisions()
         return
 
     absolutise()
@@ -115,12 +115,8 @@ function collapse-do n
         else
             cnt-disabled := cnt-disabled + 1
 
-            if our.is-below-width-threshold
-                log 'hiding'
-                $v.hide()
-            else
-                log 'showing'
-                $v.show()
+            if our.is-below-width-threshold then $v.hide()
+            else $v.show()
 
             span-height-small = 10 # XX
             top = do ->
@@ -137,9 +133,9 @@ function collapse-do n
     #
     # so call it manually after all transitions are presumed to be finished.
 
-    set-timeout do
-        check-collisions
-        config.max-transition-time-ms * 1.1
+    #set-timeout do
+    #    check-collisions
+    #    config.max-transition-time-ms * 1.1
 
 function expand
     return unless our.selected?
@@ -205,7 +201,7 @@ function init-main vals, _opts = {}
 
     our.items.0.on 'transitionend' ->
         return if our.disable-transitionend
-        check-collisions()
+        #check-collisions()
 
 function calculate
     our.padding-top = make-absolute our.opts.padding-top ? 0, 'vertical'
@@ -213,10 +209,6 @@ function calculate
 
     window-width = our.$window.width()
     our.is-below-width-threshold = window-width < config.width-threshold-hide-disabled
-
-    log 'is-below-width-threshold' our.is-below-width-threshold
-    log 'window-width' window-width
-    log 'width-threshold-hide-disabled' config.width-threshold-hide-disabled
 
     our.$container
         .css 'padding-top' our.padding-top
@@ -363,11 +355,7 @@ function check-collisions
             right-stuff-left-edge := $v.offset().left
         return if right-stuff-left-edge? and left-stuff-right-edge?
 
-    log 'left-stuff-right-edge' left-stuff-right-edge
-    log 'right-stuff-left-edge' right-stuff-left-edge
-
     if right-stuff-left-edge <= left-stuff-right-edge + config.collision-gutter
-        log 'yes, collision'
         the-class = '.' + config.class.heading-disabled
         $find = our.$container.find the-class
             .hide()

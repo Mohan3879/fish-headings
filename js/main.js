@@ -58,7 +58,6 @@ function init($_container, vals, opts){
 }
 function collapse(n, force){
   if (our.selected === n && !force) {
-    checkCollisions();
     return;
   }
   absolutise();
@@ -80,7 +79,7 @@ function collapseDo(n){
   });
   cntDisabled = -1;
   modifiedCss = 0;
-  our.items.forEach(function($v, i){
+  return our.items.forEach(function($v, i){
     var modifyCssV, top, spanHeightSmall;
     modifyCssV = modifyCss.bind(null, $v);
     modifiedCss = modifiedCss + $v.css('left', '');
@@ -91,10 +90,8 @@ function collapseDo(n){
     } else {
       cntDisabled = cntDisabled + 1;
       if (our.isBelowWidthThreshold) {
-        log('hiding');
         $v.hide();
       } else {
-        log('showing');
         $v.show();
       }
       spanHeightSmall = 10;
@@ -107,7 +104,6 @@ function collapseDo(n){
       return modifiedCss = modifiedCss + modifyCssV('top', top);
     }
   });
-  return setTimeout(checkCollisions, config.maxTransitionTimeMs * 1.1);
 }
 function expand(){
   var x$;
@@ -179,7 +175,6 @@ function initMain(vals, _opts){
     if (our.disableTransitionend) {
       return;
     }
-    return checkCollisions();
   });
 }
 function calculate(){
@@ -188,9 +183,6 @@ function calculate(){
   our.paddingBottom = makeAbsolute((ref$ = our.opts.paddingBottom) != null ? ref$ : 0, 'vertical');
   windowWidth = our.$window.width();
   our.isBelowWidthThreshold = windowWidth < config.widthThresholdHideDisabled;
-  log('is-below-width-threshold', our.isBelowWidthThreshold);
-  log('window-width', windowWidth);
-  log('width-threshold-hide-disabled', config.widthThresholdHideDisabled);
   our.$container.css('padding-top', our.paddingTop).css('padding-bottom', our.paddingBottom);
   return our.collapsedHeightInner = (that = our.opts.collapsedHeightInner) ? makeAbsolute(that, 'vertical') : void 8;
 }
@@ -351,10 +343,7 @@ function checkCollisions(){
       return;
     }
   });
-  log('left-stuff-right-edge', leftStuffRightEdge);
-  log('right-stuff-left-edge', rightStuffLeftEdge);
   if (rightStuffLeftEdge <= leftStuffRightEdge + config.collisionGutter) {
-    log('yes, collision');
     theClass = '.' + config['class'].headingDisabled;
     $find = our.$container.find(theClass).hide();
   }
