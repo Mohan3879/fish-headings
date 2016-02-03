@@ -2,3 +2,7 @@
 .*.swp
 
 node_modules
+
+.vido-files
+vi
+functions
