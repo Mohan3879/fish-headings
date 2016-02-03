@@ -18,13 +18,15 @@ config =
         heading-enabled: 'enabled'
         heading-disabled: 'disabled'
         container-collapsed: 'collapsed'
-    collision-gutter: 100
+    collision-gutter: 20
     max-transition-time-ms: 100
+    width-threshold-hide-disabled: 600
 
 our =
     items: []
 
     $main: void
+    $window: void
 
     opts: {}
 
@@ -45,8 +47,11 @@ our =
     padding-top: -1
     padding-bottom: -1
 
+    is-below-width-threshold: void
+
 function init $_container, vals, opts = {}
     our.$container = $_container
+    our.$window = $ window
     init-main vals, opts
     calculate()
     inject()
@@ -98,11 +103,24 @@ function collapse-do n
         # --- undo the 'left' which we applied earlier so that css classes
         # work.
         modified-css := modified-css + $v.css 'left' ''
+
+        # --- enabled.
         if i == n
             top = (divide our.collapsed-height-inner, 2) - (our.span-height-large / 2)
             modified-css := modified-css + modify-css-v 'top' top
+
+            $v.show()
+
+        # --- disabled.
         else
             cnt-disabled := cnt-disabled + 1
+
+            if our.is-below-width-threshold
+                log 'hiding'
+                $v.hide()
+            else
+                log 'showing'
+                $v.show()
 
             span-height-small = 10 # XX
             top = do ->
@@ -192,6 +210,13 @@ function init-main vals, _opts = {}
 function calculate
     our.padding-top = make-absolute our.opts.padding-top ? 0, 'vertical'
     our.padding-bottom = make-absolute our.opts.padding-bottom ? 0, 'vertical'
+
+    window-width = our.$window.width()
+    our.is-below-width-threshold = window-width < config.width-threshold-hide-disabled
+
+    log 'is-below-width-threshold' our.is-below-width-threshold
+    log 'window-width' window-width
+    log 'width-threshold-hide-disabled' config.width-threshold-hide-disabled
 
     our.$container
         .css 'padding-top' our.padding-top
@@ -325,6 +350,8 @@ function make-absolute val, direction
 
 function check-collisions
 
+    return
+
     left-stuff-right-edge = -1
     right-stuff-left-edge = -1
     our.items.for-each ($v, i) ->
@@ -336,11 +363,11 @@ function check-collisions
             right-stuff-left-edge := $v.offset().left
         return if right-stuff-left-edge? and left-stuff-right-edge?
 
-    #log 'left-stuff-right-edge' left-stuff-right-edge
-    #log 'right-stuff-left-edge' right-stuff-left-edge
+    log 'left-stuff-right-edge' left-stuff-right-edge
+    log 'right-stuff-left-edge' right-stuff-left-edge
 
     if right-stuff-left-edge <= left-stuff-right-edge + config.collision-gutter
-        #log 'yes, collision'
+        log 'yes, collision'
         the-class = '.' + config.class.heading-disabled
         $find = our.$container.find the-class
             .hide()

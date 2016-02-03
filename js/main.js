@@ -16,12 +16,14 @@ config = {
     headingDisabled: 'disabled',
     containerCollapsed: 'collapsed'
   },
-  collisionGutter: 100,
-  maxTransitionTimeMs: 100
+  collisionGutter: 20,
+  maxTransitionTimeMs: 100,
+  widthThresholdHideDisabled: 600
 };
 our = {
   items: [],
   $main: void 8,
+  $window: void 8,
   opts: {},
   tops: [],
   lefts: [],
@@ -35,11 +37,13 @@ our = {
   longestWidth: -1,
   flushLeft: void 8,
   paddingTop: -1,
-  paddingBottom: -1
+  paddingBottom: -1,
+  isBelowWidthThreshold: void 8
 };
 function init($_container, vals, opts){
   opts == null && (opts = {});
   our.$container = $_container;
+  our.$window = $(window);
   initMain(vals, opts);
   calculate();
   inject();
@@ -82,9 +86,17 @@ function collapseDo(n){
     modifiedCss = modifiedCss + $v.css('left', '');
     if (i === n) {
       top = divide(our.collapsedHeightInner, 2) - our.spanHeightLarge / 2;
-      return modifiedCss = modifiedCss + modifyCssV('top', top);
+      modifiedCss = modifiedCss + modifyCssV('top', top);
+      return $v.show();
     } else {
       cntDisabled = cntDisabled + 1;
+      if (our.isBelowWidthThreshold) {
+        log('hiding');
+        $v.hide();
+      } else {
+        log('showing');
+        $v.show();
+      }
       spanHeightSmall = 10;
       top = function(){
         var height, delta;
@@ -171,9 +183,14 @@ function initMain(vals, _opts){
   });
 }
 function calculate(){
-  var ref$, that;
+  var ref$, windowWidth, that;
   our.paddingTop = makeAbsolute((ref$ = our.opts.paddingTop) != null ? ref$ : 0, 'vertical');
   our.paddingBottom = makeAbsolute((ref$ = our.opts.paddingBottom) != null ? ref$ : 0, 'vertical');
+  windowWidth = our.$window.width();
+  our.isBelowWidthThreshold = windowWidth < config.widthThresholdHideDisabled;
+  log('is-below-width-threshold', our.isBelowWidthThreshold);
+  log('window-width', windowWidth);
+  log('width-threshold-hide-disabled', config.widthThresholdHideDisabled);
   our.$container.css('padding-top', our.paddingTop).css('padding-bottom', our.paddingBottom);
   return our.collapsedHeightInner = (that = our.opts.collapsedHeightInner) ? makeAbsolute(that, 'vertical') : void 8;
 }
@@ -318,6 +335,7 @@ function makeAbsolute(val, direction){
 }
 function checkCollisions(){
   var leftStuffRightEdge, rightStuffLeftEdge, theClass, $find;
+  return;
   leftStuffRightEdge = -1;
   rightStuffLeftEdge = -1;
   our.items.forEach(function($v, i){
@@ -333,7 +351,10 @@ function checkCollisions(){
       return;
     }
   });
+  log('left-stuff-right-edge', leftStuffRightEdge);
+  log('right-stuff-left-edge', rightStuffLeftEdge);
   if (rightStuffLeftEdge <= leftStuffRightEdge + config.collisionGutter) {
+    log('yes, collision');
     theClass = '.' + config['class'].headingDisabled;
     $find = our.$container.find(theClass).hide();
   }
