@@ -16,7 +16,8 @@ config = {
     headingDisabled: 'disabled',
     containerCollapsed: 'collapsed'
   },
-  collisionGutter: 100
+  collisionGutter: 100,
+  maxTransitionTimeMs: 100
 };
 our = {
   items: [],
@@ -62,7 +63,7 @@ function collapse(n, force){
   }, 0);
 }
 function collapseDo(n){
-  var cntDisabled;
+  var cntDisabled, modifiedCss;
   our.selected = n;
   our.$container.addClass(config['class'].containerCollapsed);
   our.items.forEach(function($v, i){
@@ -74,20 +75,16 @@ function collapseDo(n){
     }
   });
   cntDisabled = -1;
+  modifiedCss = 0;
   our.items.forEach(function($v, i){
-    var top, spanHeightSmall;
-    log('looping', i);
+    var modifyCssV, top, spanHeightSmall;
+    modifyCssV = modifyCss.bind(null, $v);
+    modifiedCss = modifiedCss + $v.css('left', '');
     if (i === n) {
-      $v.css('left', 0);
       top = divide(our.collapsedHeightInner, 2) - our.spanHeightLarge / 2;
-      $v.css('top', top);
+      return modifiedCss = modifiedCss + modifyCssV('top', top);
     } else {
       cntDisabled = cntDisabled + 1;
-      if (our.flushLeft) {
-        $v.css('left', our.longestWidth + 15);
-      } else {
-        $v.css('left', '');
-      }
       spanHeightSmall = 10;
       top = function(){
         var height, delta;
@@ -95,17 +92,20 @@ function collapseDo(n){
         delta = divide(height, our.numItems - 2);
         return multiply(delta, cntDisabled);
       }();
-      $v.css('top', top);
+      return modifiedCss = modifiedCss + modifyCssV('top', top);
     }
-    return our.$container.css('min-height', our.collapsedHeight);
   });
-  return checkCollisions();
+  return setTimeout(checkCollisions, config.maxTransitionTimeMs * 1.1);
 }
 function expand(){
+  var x$;
   if (our.selected == null) {
     return;
   }
-  our.$container.removeClass(config['class'].containerCollapsed);
+  x$ = our.$container;
+  x$.removeClass(config['class'].containerCollapsed);
+  x$.css('min-height', '');
+  x$.css('max-height', '');
   restore();
   return our.selected = void 8;
 }
@@ -338,4 +338,10 @@ function checkCollisions(){
     $find = our.$container.find(theClass).hide();
   }
   return 1;
+}
+function modifyCss($target, prop, value){
+  var curVal;
+  curVal = $target.css(prop);
+  $target.css(prop, value);
+  return curVal !== value;
 }

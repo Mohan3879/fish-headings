@@ -19,6 +19,7 @@ config =
         heading-disabled: 'disabled'
         container-collapsed: 'collapsed'
     collision-gutter: 100
+    max-transition-time-ms: 100
 
 our =
     items: []
@@ -88,41 +89,49 @@ function collapse-do n
             $v.add-class config.class.heading-disabled
 
     cnt-disabled = -1
+
+    # --- no longer using.
+    modified-css = 0
+
     our.items.for-each ($v, i) ->
-        log 'looping' i
+        modify-css-v = modify-css.bind null $v
+        # --- undo the 'left' which we applied earlier so that css classes
+        # work.
+        modified-css := modified-css + $v.css 'left' ''
         if i == n
-            $v.css 'left' 0
             top = (divide our.collapsed-height-inner, 2) - (our.span-height-large / 2)
-            $v.css 'top' top
+            modified-css := modified-css + modify-css-v 'top' top
         else
             cnt-disabled := cnt-disabled + 1
-            if our.flush-left
-                $v.css 'left' our.longest-width + 15 # XX
-            else
-                $v.css 'left' ''
+
             span-height-small = 10 # XX
             top = do ->
                 height = subtract our.collapsed-height-inner, span-height-small
                 delta = divide height, (our.num-items - 2)
                 multiply delta, cnt-disabled
-            $v.css 'top' top
+            modified-css := modified-css + modify-css-v 'top' top
 
-        our.$container.css 'min-height' our.collapsed-height
-
-    # --- it's possible that no css changed during this call, so
+    # --- it's possible that no css changed on any item during this call, so
     # transitionend won't fire and check-collisions won't get called.
     #
-    # so call it manually.
+    # it's also possible to have quirks where the calculations happen during
+    # a transition.
+    #
+    # so call it manually after all transitions are presumed to be finished.
 
-    check-collisions()
+    set-timeout do
+        check-collisions
+        config.max-transition-time-ms * 1.1
 
 function expand
     return unless our.selected?
-    our.$container.remove-class config.class.container-collapsed
+    our.$container
+        ..remove-class config.class.container-collapsed
+        ..css 'min-height' ''
+        ..css 'max-height' ''
+
     restore()
     our.selected = void
-
-    #check-collisions()
 
 function collapsed-height
     our.collapsed-height
@@ -306,7 +315,16 @@ function make-absolute val, direction
     the-reference-val = if direction == 'horizontal' then $the-reference.width() else $the-reference.height()
     m.1 * the-reference-val / 100
 
+# --- @private
+#
+# when collapsed, check if the right column is too close to the left column
+# (this will happen e.g. on mobile).
+#
+# if so, make the right column invisible -- they will have to make do with
+# only the main headings.
+
 function check-collisions
+
     left-stuff-right-edge = -1
     right-stuff-left-edge = -1
     our.items.for-each ($v, i) ->
@@ -318,11 +336,23 @@ function check-collisions
             right-stuff-left-edge := $v.offset().left
         return if right-stuff-left-edge? and left-stuff-right-edge?
 
+    #log 'left-stuff-right-edge' left-stuff-right-edge
+    #log 'right-stuff-left-edge' right-stuff-left-edge
+
     if right-stuff-left-edge <= left-stuff-right-edge + config.collision-gutter
+        #log 'yes, collision'
         the-class = '.' + config.class.heading-disabled
         $find = our.$container.find the-class
             .hide()
     # avoid strange javascript syntax error
     1
 
+# --- applies css and returns true if it's actually a modification.
+#
+# does no conversion of types.
 
+function modify-css $target, prop, value
+    cur-val = $target.css prop
+    $target.css prop, value
+
+    cur-val != value
