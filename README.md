@@ -12,4 +12,4 @@ The component comes in view as you scroll down, and responds to scroll events to
 
 It works particularly well as a sticky element ('affixed' in Bootstrap terminology).
 
-Please note that this is a WIP.
+Please note that both the component and the site is is being developed for are WIPs.
